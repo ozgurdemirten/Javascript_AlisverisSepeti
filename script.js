@@ -82,7 +82,7 @@ class UI {
             tempTotal += item.price * item.amount;
             itemsTotal += item.amount;
         });
-        console.log(cartTotal);
+       // console.log(cartTotal);
         cartTotal.innerText = parseFloat(tempTotal.toFixed(2));
         cartItems.innerText = itemsTotal;
     }
@@ -118,39 +118,79 @@ class UI {
         `;
         cartContent.appendChild(li);
     }
-    showCarts(){
+    showCarts() {
         cartBtn.click();
     }
-    setupAPP(){
-        cart= Storage.getCart();
+    setupAPP() {
+        cart = Storage.getCart();
         this.saveCartValues(cart);
         this.populateCart(cart);
     }
-    populateCart(cart){
-        cart.forEach(item=>this.addCardItem(item));
+    populateCart(cart) {
+        cart.forEach(item => this.addCardItem(item));
     }
-    cartLogic(){
-        clearCartBtn.addEventListener("click", ()=>{
+    cartLogic() {
+        clearCartBtn.addEventListener("click", () => {
             this.clearCart();
         })
+        cartContent.addEventListener("click", event => {
+            if (event.target.classList.contains("cart-remove-btn")) {
+                let removeItem = event.target;
+                let id = removeItem.dataset.id;
+                removeItem.parentElement.parentElement.parentElement.remove();
+
+
+                this.removeItem(id);
+            }
+            else if (event.target.classList.contains("quantity-minus")) {
+                let lowerAmount = event.target;
+                let id = lowerAmount.dataset.id;
+                let tempItem = cart.find(e => e.id === id);
+                tempItem.amount = tempItem.amount - 1;
+                if (tempItem.amount > 0) {
+
+                    Storage.saveCart(cart);
+                    this.saveCartValues(cart);
+                    lowerAmount.nextElementSibling.innerText = tempItem.amount;
+                }
+                else {
+                    lowerAmount.parentElement.parentElement.parentElement.remove();
+
+
+                    this.removeItem(id);
+                }
+            }
+            else if (event.target.classList.contains("quantity-plus")) {
+                let addAmount = event.target;
+                let id = addAmount.dataset.id;
+                let tempItem = cart.find(e => e.id === id);
+                tempItem.amount = tempItem.amount + 1;
+                
+
+                Storage.saveCart(cart);
+                this.saveCartValues(cart);
+                addAmount.previousElementSibling.innerText=tempItem.amount;
+            }
+
+        })
     }
-    clearCart(){
-        let cartItems=cart.map(item=>item.id);
-        cartItems.forEach(id=>this.removeItem(id));
+    clearCart() {
+        let cartItems = cart.map(item => item.id);
+        cartItems.forEach(id => this.removeItem(id));
         while (cartContent.children.length > 0) {
             cartContent.removeChild(cartContent.children[0])
         }
     }
-    removeItem(id){
-        cart=cart.filter(item=>item.id !== id);
+    removeItem(id) {
+        cart = cart.filter(item => item.id !== id);
         this.saveCartValues(cart);
         Storage.saveCart(cart);
         let button = this.getSinleButton(id);
-        button.disabled=false;
-
+        button.disabled = false;
+        button.style.opacity = "1";
     }
-    getSinleButton(id){
-        return buttonsDOM.find(button=>button.dataset.id===id);
+    getSinleButton(id) {
+        return buttonsDOM.find(button => button.dataset.id === id);
     }
 }
 
@@ -166,8 +206,8 @@ class Storage {
     static saveCart(cart) {
         localStorage.setItem("cart", JSON.stringify(cart));
     }
-    static getCart(){
-      return  localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")):[];
+    static getCart() {
+        return localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : [];
     }
 
 }
